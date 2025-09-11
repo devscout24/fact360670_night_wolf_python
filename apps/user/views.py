@@ -12,7 +12,7 @@ from .serializers import SignUpSerializer
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
 
-from .serializers import UserProfileSerializer, UserChangePasswordSerializer, PasswordResetRQSerializer,OTPVerifySerializer,PasswordResetSerializer
+from .serializers import UserProfileSerializer, UserChangePasswordSerializer, PasswordResetRQSerializer,OTPVerifySerializer,PasswordResetSerializer, EmailVerifySerializer
 
 
 class UserProfileAPIView(APIView):
@@ -67,19 +67,28 @@ class UserProfileDetailAPIView(APIView):
 
 
 class SignUpView(APIView):
-    permission_classes = [] 
+    permission_classes = []
+    serializer_class = SignUpSerializer
 
-    def post(self, request):
-        password = request.data.get('password')
-        confirm_password = request.data.get('password2') 
-
-        if password != confirm_password:
-            raise ValidationError({'password_mismatch': 'Password fields did not match.'})
-
-        serializer = SignUpSerializer(data=request.data)
+    def post(self, request, *args, **kwargs):
+        serializer = self.serializer_class(data=request.data)
         serializer.is_valid(raise_exception=True)
         user = serializer.save()
-        return Response(serializer.data, status=status.HTTP_201_CREATED)
+
+        return Response({
+            "message": "OTP sent to your email",
+            "otp": user.otp
+        }, status=status.HTTP_201_CREATED)
+
+class EmailOTPVerifyView(APIView):
+    permission_classes= []  
+    
+    def post(self, request):
+        serializer = EmailVerifySerializer(data=request.data)
+        serializer.is_valid(raise_exception=True)
+        tokens = serializer.save()
+        return Response(tokens, status=status.HTTP_200_OK)
+    
     
 class LoginView(APIView):
     permission_classes= []    
@@ -149,18 +158,28 @@ class UserChangePasswordAPIView(APIView):
 
 
 class PasswordResetRQAPIView(APIView):
-    permission_classes= []
-    
-    def post(self,request):
-        serializer= PasswordResetRQSerializer(data= request.data)
+    permission_classes = []
+
+    def post(self, request):
+        serializer = PasswordResetRQSerializer(data=request.data)
         if serializer.is_valid():
+            user = getattr(serializer, 'user', None)
+            otp_value = user.otp if user else None
+            email= user.email if user else None
             return Response(
-                {"message": "OTP sent to email."}
+                {
+                    "message": "OTP sent to email.",
+                    "otp": otp_value,
+                    "email": email
+                },
+                status=200
             )
+
         return Response(
-            {"errors": serializer.errors}
-        )    
-        
+            {"errors": serializer.errors},
+            status=400
+        )
+
         
 class OTPVerifyAPIView(APIView):
     permission_classes= []

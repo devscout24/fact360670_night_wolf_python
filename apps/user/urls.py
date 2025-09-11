@@ -1,12 +1,13 @@
 from django.urls import path
 from .views import SignUpView,LogoutView,LoginView, UserChangePasswordAPIView,UserProfileDetailAPIView
 from rest_framework_simplejwt.views import TokenObtainPairView, TokenRefreshView, TokenVerifyView
-from .views import PasswordResetRQAPIView, OTPVerifyAPIView, PasswordResetAPIView,UserProfileAPIView
+from .views import PasswordResetRQAPIView, OTPVerifyAPIView, PasswordResetAPIView,UserProfileAPIView, EmailOTPVerifyView
 from django.conf.urls.static import static
 from django.conf import settings
 
 urlpatterns = [
     path('signup/', SignUpView.as_view(), name='signup'),
+    path('email-verify/', EmailOTPVerifyView.as_view(), name='verify-otp'),
     path('login/', LoginView.as_view(), name='login'),
     path('logout/', LogoutView.as_view(), name='logout'),
     path('pass-reset/request/', PasswordResetRQAPIView.as_view(), name='password-reset-request'),
