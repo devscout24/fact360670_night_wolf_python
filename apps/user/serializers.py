@@ -29,6 +29,7 @@ class UserProfileSerializer( serializers.ModelSerializer):
         model= User
         fields= ['id','full_name', 'is_subscribed', 'photo']
 
+
 class SignUpSerializer(serializers.ModelSerializer):
     password2 = serializers.CharField(write_only=True)
     photo = AbsoluteImageSerializer(required=False)
@@ -104,13 +105,12 @@ class EmailVerifySerializer(serializers.Serializer):
             'refresh': str(refresh),
             'access': str(refresh.access_token)
         }
-            
-    
 
 # User can change password using old password
 class UserChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)    
+    
     
 class PasswordResetRQSerializer(serializers.Serializer):
     email = serializers.EmailField()
@@ -125,20 +125,19 @@ class PasswordResetRQSerializer(serializers.Serializer):
         user.generate_otp()
 
         # Send OTP via email
-        send_mail(
-            "Password Reset OTP",
-            f"Your OTP for password reset is {user.otp}",
-            "aboutazizur@gmail.com",
-            [user.email],
-            fail_silently=False,
-        )
+        # send_mail(
+        #     "Password Reset OTP",
+        #     f"Your OTP for password reset is {user.otp}",
+        #     "aboutazizur@gmail.com",
+        #     [user.email],
+        #     fail_silently=False,
+        # )
 
         # Save the user instance to serializer for view access
         self.user = user  
 
         return data
 
-    
 
 class OTPVerifySerializer(serializers.Serializer):
     email= serializers.EmailField()
@@ -162,6 +161,7 @@ class OTPVerifySerializer(serializers.Serializer):
         print("From DB:", User.objects.get(email=user.email).otp_verified)
 
         return attrs
+    
     
 class PasswordResetSerializer(serializers.Serializer):
     email = serializers.EmailField()
