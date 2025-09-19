@@ -27,7 +27,17 @@ SECRET_KEY = 'django-insecure-xmt8^8p&+)c8r6ufe$!!7-d01bfv-bm0#m66oh8hj3134u_in9
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-ALLOWED_HOSTS = ["*"]
+ALLOWED_HOSTS = [
+    '1556b845172e.ngrok-free.app',
+    'localhost', 
+    '127.0.0.1'
+]
+
+CSRF_TRUSTED_ORIGINS = [
+    "https://1556b845172e.ngrok-free.app",
+    "https://www.1556b845172e.ngrok-free.app",
+]
+
 
 # Adding JWT config
 SIMPLE_JWT = {
@@ -51,12 +61,19 @@ REST_FRAMEWORK = {
 
 # for email functionality
 
-EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+# EMAIL_HOST = 'smtp.gmail.com'
+# EMAIL_PORT = 587
+# EMAIL_HOST_USER = 'aboutazizur@gmail.com'
+# EMAIL_HOST_PASSWORD = 'rctixilnneqgajej'
+# EMAIL_USE_TLS = True
+
+EMAIL_BackEND = 'django.care.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = 'smtp.gmail.com'
-EMAIL_PORT = 587
-EMAIL_HOST_USER = 'aboutazizur@gmail.com'
-EMAIL_HOST_PASSWORD = 'rctixilnneqgajej'
 EMAIL_USE_TLS = True
+EMAIL_PORT = 587
+EMAIL_HOST_USER = 'sifatali360@gmail.com'
+EMAIL_HOST_PASSWORD = 'huhe rrbm klcz nfdv'
 
 
 

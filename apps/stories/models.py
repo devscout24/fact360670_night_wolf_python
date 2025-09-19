@@ -20,7 +20,7 @@ class Audio (models.Model):
     category= models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     
     play_count= models.PositiveIntegerField(default=0)
-    is_featured= models.BooleanField(default=False)
+    is_premium= models.BooleanField(default=False)
     created_at= models.DateTimeField(auto_now_add= True)
     
     def increment_play(self):

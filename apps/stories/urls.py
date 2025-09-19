@@ -16,7 +16,9 @@ from .views import (
     FollowCategoryDeleteView,
     FollowCategoryListView,
     CommentDetailView,
-    AddAudioToPlaylistView
+    AddAudioToPlaylistView,
+    CategoryListView,
+    CategoryView
 )
 
 urlpatterns = [
@@ -29,6 +31,9 @@ urlpatterns = [
     path("audios/top/", TopAllStoriesView.as_view(), name="top-all-stories"),
     path("audios/popular/", PopularAudioView.as_view(), name="popular-audios"),
     path("audios/recommended/", RecommendedAudioView.as_view(), name="recommended-audios"),
+    
+    path('categories/', CategoryListView.as_view(), name='categories-list'),
+    path('categories/<str:category_name>/', CategoryView.as_view(), name='category-audios'),
 
     # Likes
     path("audios/<int:pk>/like/", LikeView.as_view(), name="like-audio"),

@@ -10,8 +10,8 @@ class CategoryAdmin(admin.ModelAdmin):
 # Audio
 @admin.register(Audio)
 class AudioAdmin(admin.ModelAdmin):
-    list_display = ("id", "title", "artist", "category", "play_count", "is_featured", "created_at")
-    list_filter = ("category", "is_featured", "created_at")
+    list_display = ("id", "title", "artist", "category", "play_count", "is_premium", "created_at")
+    list_filter = ("category", "is_premium", "created_at")
     search_fields = ("title", "artist", "description")
     readonly_fields = ("play_count",)
 
