@@ -15,12 +15,12 @@ class AudioAdmin(admin.ModelAdmin):
     search_fields = ("title", "artist", "description")
     readonly_fields = ("play_count",)
 
-# Playlist
-@admin.register(Playlist)
-class PlaylistAdmin(admin.ModelAdmin):
-    list_display = ("id", "name", "user")
-    search_fields = ("name", "user__email")
-    filter_horizontal = ("audios",)
+# # Playlist
+# @admin.register(Playlist)
+# class PlaylistAdmin(admin.ModelAdmin):
+#     list_display = ("id", "name", "user")
+#     search_fields = ("name", "user__email")
+#     filter_horizontal = ("audios",)
 
 # History
 @admin.register(History)
@@ -43,31 +43,31 @@ class CommentAdmin(admin.ModelAdmin):
     search_fields = ("user__email", "audio__title", "text")
     list_filter = ("created_at",)
 
-# Follow
-@admin.register(Follow)
-class FollowAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "artist", "created_at")
-    search_fields = ("user__email", "artist__email")
-    list_filter = ("created_at",)
+# # Follow
+# @admin.register(Follow)
+# class FollowAdmin(admin.ModelAdmin):
+#     list_display = ("id", "user", "artist", "created_at")
+#     search_fields = ("user__email", "artist__email")
+#     list_filter = ("created_at",)
 
-# Download
-@admin.register(Download)
-class DownloadAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "audio", "created_at")
-    search_fields = ("user__email", "audio__title")
-    list_filter = ("created_at",)
-
-
-@admin.register(FollowCategory)
-class FollowCategoryAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "category", "created_at")
-    list_filter = ("category", "created_at")
-    search_fields = ("user__full_name", "category__name")
+# # Download
+# @admin.register(Download)
+# class DownloadAdmin(admin.ModelAdmin):
+#     list_display = ("id", "user", "audio", "created_at")
+#     search_fields = ("user__email", "audio__title")
+#     list_filter = ("created_at",)
 
 
-@admin.register(Notification)
-class NotificationAdmin(admin.ModelAdmin):
-    list_display = ("id", "user", "audio", "message", "is_read", "created_at")
-    list_filter = ("is_read", "created_at")
-    search_fields = ("user__full_name", "audio__title", "message")
-    readonly_fields = ("created_at",)
+# @admin.register(FollowCategory)
+# class FollowCategoryAdmin(admin.ModelAdmin):
+#     list_display = ("id", "user", "category", "created_at")
+#     list_filter = ("category", "created_at")
+#     search_fields = ("user__full_name", "category__name")
+
+
+# @admin.register(Notification)
+# class NotificationAdmin(admin.ModelAdmin):
+#     list_display = ("id", "user", "audio", "message", "is_read", "created_at")
+#     list_filter = ("is_read", "created_at")
+#     search_fields = ("user__full_name", "audio__title", "message")
+#     readonly_fields = ("created_at",)

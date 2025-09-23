@@ -28,14 +28,14 @@ SECRET_KEY = 'django-insecure-xmt8^8p&+)c8r6ufe$!!7-d01bfv-bm0#m66oh8hj3134u_in9
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '1556b845172e.ngrok-free.app',
+    'dc2c1a8b85b2.ngrok-free.app',
     'localhost', 
-    '127.0.0.1'
+    '127.0.0.1',
+    '*'
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://1556b845172e.ngrok-free.app",
-    "https://www.1556b845172e.ngrok-free.app",
+    "https://dc2c1a8b85b2.ngrok-free.app",
 ]
 
 
@@ -48,7 +48,7 @@ SIMPLE_JWT = {
 # settings.py
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'rest_framework_simplejwt.authentication.JWTAuthentication',  # ✅ add this
+        'rest_framework_simplejwt.authentication.JWTAuthentication',
         'rest_framework.authentication.SessionAuthentication',
         'rest_framework.authentication.TokenAuthentication',
     ],
@@ -73,7 +73,7 @@ EMAIL_HOST = 'smtp.gmail.com'
 EMAIL_USE_TLS = True
 EMAIL_PORT = 587
 EMAIL_HOST_USER = 'sifatali360@gmail.com'
-EMAIL_HOST_PASSWORD = 'huhe rrbm klcz nfdv'
+EMAIL_HOST_PASSWORD = 'huherrbmklcznfdv'
 
 
 

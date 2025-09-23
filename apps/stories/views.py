@@ -288,54 +288,41 @@ class RecommendedAudioView(BaseAPIView):
         )
 
       
-class LikeView(BaseAPIView):
+class LikeToggleView(BaseAPIView):
     permission_classes = [permissions.IsAuthenticated]
-    
+
     def post(self, request, pk):
         try:
             audio = Audio.objects.get(pk=pk)
-            like, created = Like.objects.get_or_create(user=request.user, audio=audio)
-            
-            if not created:
+            like = Like.objects.filter(user=request.user, audio=audio).first()
+
+            if like:
+                # already liked → unlike
+                like.delete()
                 return self.success_response(
-                    message="You have already liked this audio"
+                    message="Audio unliked successfully",
+                    data={
+                        "is_liked": False,
+                        "total_like": Like.objects.filter(audio=audio).count()
+                    }
                 )
-            return self.success_response(
-                message="Audio liked successfully",
-                data={"total_like": Like.objects.filter(audio=audio).count()}
-            )
+            else:
+                # not liked → like
+                Like.objects.create(user=request.user, audio=audio)
+                return self.success_response(
+                    message="Audio liked successfully",
+                    data={
+                        "is_liked": True,
+                        "total_like": Like.objects.filter(audio=audio).count()
+                    }
+                )
+
         except Audio.DoesNotExist:
             return self.error_response(
                 message="Audio not found. Please check the audio ID.",
                 status_code=status.HTTP_404_NOT_FOUND
             )
-    
-    def get(self, request, pk):
-        likes = Like.objects.filter(audio_id=pk).order_by("-created_at")
-        serializer = LikeSerializer(likes, many=True, context={"request": request})
-        return self.success_response(
-            message="Audio likes retrieved successfully",
-            data={
-                "total_like": likes.count(),
-                "likes": serializer.data
-            }
-        )
-    
 
-class UnlikeView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
-    
-    def post(self, request, pk):
-        try:
-            like = Like.objects.get(user=request.user, audio_id=pk)
-            like.delete()
-            return self.success_response(
-                message="Audio unliked successfully"
-            )
-        except Like.DoesNotExist:
-            return self.error_response(
-                message="You haven't liked this audio yet"
-            )
         
 
 class CommentView(BaseAPIView):

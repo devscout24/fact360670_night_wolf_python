@@ -37,17 +37,24 @@ class NotificationSerializer(serializers.ModelSerializer):
 class AudioSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
-        
+    is_liked = serializers.SerializerMethodField()  # 👈 নতুন field
+
     class Meta:
-        model= Audio
-        fields= "__all__"
-        depth= 1
-        
+        model = Audio
+        fields = "__all__"
+        depth = 1
+
     def get_like_count(self, obj):
-        return Like.objects.filter(audio= obj).count()
-    
+        return Like.objects.filter(audio=obj).count()
+
     def get_comment_count(self, obj):
         return Comment.objects.filter(audio=obj).count()
+
+    def get_is_liked(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return Like.objects.filter(audio=obj, user=request.user).exists()
+        return False
         
         
 class PlayListSerializer(serializers.ModelSerializer):
@@ -61,7 +68,7 @@ class PlayListSerializer(serializers.ModelSerializer):
 class LikeSerializer(serializers.ModelSerializer):
     class Meta:
         model= Like
-        fields= "__all__"
+        fields= ['id', "user", "created_at"]
         
         
 class CommentSerializer(serializers.ModelSerializer):
