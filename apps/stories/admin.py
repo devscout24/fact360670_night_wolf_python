@@ -1,11 +1,17 @@
 from django.contrib import admin
 from .models import Audio, Playlist, History, Like, Comment, Follow, Download, Category, Notification, FollowCategory
+from .thread import create_audio_notifications, create_category_notifications
 
 # Category
 @admin.register(Category)
 class CategoryAdmin(admin.ModelAdmin):
     list_display = ("id", "name")
     search_fields = ("name",)
+    
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if not change:  # শুধুমাত্র নতুন create হলে
+            create_category_notifications(obj)
 
 # Audio
 @admin.register(Audio)
@@ -14,6 +20,11 @@ class AudioAdmin(admin.ModelAdmin):
     list_filter = ("category", "is_premium", "created_at")
     search_fields = ("title", "artist", "description")
     readonly_fields = ("play_count",)
+    
+    def save_model(self, request, obj, form, change):
+        super().save_model(request, obj, form, change)
+        if not change:  # শুধুমাত্র নতুন create হলে
+            create_audio_notifications(obj)
 
 # # Playlist
 # @admin.register(Playlist)

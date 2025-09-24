@@ -17,13 +17,33 @@ from .views import (
     CommentDetailView,
     AddAudioToPlaylistView,
     CategoryListView,
-    CategoryView
+    CategoryView,
+    NotificationListView,
+    AudioDetailsView,
+    DownloadCreateView,
+    DownloadListView,
+    DownloadDeleteView,
+    AudioSearchView,
+    SearchHistoryDeleteView,
 )
 
 urlpatterns = [
+    #Notificatiuons
+     path("notifications/", NotificationListView.as_view(), name="notification-list"),
+    
     # Audio
     path("audios/", AudioListView.as_view(), name="audio-list"),
     path("audios/<int:pk>/play/", AudioPlayView.as_view(), name="audio-play"),
+    path("audios/<int:pk>/details/", AudioDetailsView.as_view(), name="audio-play"),
+    
+    #Downloades
+    path('downloads/', DownloadListView.as_view(), name='download-list'),
+    path('downloads/<int:audio_id>/create/', DownloadCreateView.as_view(), name='download-create'),
+    path('downloads/<int:pk>/delete/', DownloadDeleteView.as_view(), name='download-delete'),
+    
+    #Search
+    path('search/', AudioSearchView.as_view(), name='audio-search'),
+    path('search/history/<int:pk>/delete/', SearchHistoryDeleteView.as_view(), name='search-history-delete'),
 
     # Trending / Top Story / Popular / Recommended
     path("audios/trending/", TrendingAudioView.as_view(), name="trending-audios"),
@@ -52,5 +72,5 @@ urlpatterns = [
 
     # Notifications
     path("notifications/", NotificationListView.as_view(), name="notifications"),
-    path("notifications/<int:pk>/read/", NotificationMarkReadView.as_view(), name="notification_mark_read"),
+    path("notifications/<int:pk>/", NotificationMarkReadView.as_view(), name="notification_mark_read"),
 ]

@@ -1,6 +1,7 @@
 from rest_framework import serializers
 from .models import *
 from apps.user.models import User
+from django.utils.timesince import timesince
 
 class UserSerializer(serializers.ModelSerializer):
     class Meta:
@@ -27,14 +28,40 @@ class FollowCategorySerializer(serializers.ModelSerializer):
 
 class NotificationSerializer(serializers.ModelSerializer):
     audio_title = serializers.CharField(source="audio.title", read_only=True)
-    category_name = serializers.CharField(source="audio.category.name", read_only=True)
+    audio_artist= serializers.CharField(source= "audio.artist", read_only=True)
+    audio_image= serializers.CharField(source='audio.cover_image', read_only= True)
 
     class Meta:
         model = Notification
-        fields = ["id", "audio", "audio_title", "category_name", "message", "is_read", "created_at"]
-
+        fields = [
+            "id", "audio", "audio_artist", "audio_title", 'audio_image',
+            "message", "is_read", "created_at"
+        ]
 
 class AudioSerializer(serializers.ModelSerializer):
+    like_count = serializers.SerializerMethodField()
+    comment_count = serializers.SerializerMethodField()
+    is_liked = serializers.SerializerMethodField()  # 👈 নতুন field
+
+    class Meta:
+        model = Audio
+        fields = "__all__"
+        depth = 1
+
+    def get_like_count(self, obj):
+        return Like.objects.filter(audio=obj).count()
+
+    def get_comment_count(self, obj):
+        return Comment.objects.filter(audio=obj).count()
+    
+    def get_is_liked(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return Like.objects.filter(audio=obj, user=request.user).exists()
+        return False
+
+
+class AudioPlaySerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
     is_liked = serializers.SerializerMethodField()  # 👈 নতুন field
@@ -72,12 +99,16 @@ class LikeSerializer(serializers.ModelSerializer):
         
         
 class CommentSerializer(serializers.ModelSerializer):
-    user= UserSerializer(read_only= True)
-    audio= AudioSerializer(read_only= True)
-    
+    user = UserSerializer(read_only=True)
+    time_ago = serializers.SerializerMethodField()
+
     class Meta:
-        model= Comment
-        fields= "__all__"
+        model = Comment
+        fields = ['id', "user", 'text', "created_at", "time_ago"]
+
+    def get_time_ago(self, obj):
+        # created_at theke current time porjonto gap
+        return f"{timesince(obj.created_at)} ago"
         
         
 class HistorySerializer(serializers.ModelSerializer):
@@ -87,6 +118,16 @@ class HistorySerializer(serializers.ModelSerializer):
         
         
 class DownloadSerializer(serializers.ModelSerializer):
+    audio = AudioSerializer(read_only=True)
+    
     class Meta:
         model= Download
-        fields= "__all__"                
+        fields= ['id','user', 'audio']                
+        
+        
+class SearchHistorySerializer(serializers.ModelSerializer):
+    class Meta:
+        model = SearchHistory
+        fields = "__all__"
+        
+        

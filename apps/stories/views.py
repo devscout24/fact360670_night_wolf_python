@@ -6,6 +6,7 @@ from rest_framework.response import Response
 from rest_framework import status, permissions
 from datetime import timedelta
 from django.utils import timezone
+from django.db.models import Q
 
 class BaseAPIView(APIView):
     
@@ -42,6 +43,34 @@ class AudioListView(BaseAPIView):
             data=serializer.data
         )
 
+class AudioDetailsView(BaseAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+    
+    def get(self, request, pk):
+        try:
+            audio = Audio.objects.get(pk=pk)
+            
+            History.objects.create(user=request.user, audio=audio)
+            serializer = AudioSerializer(audio, context={"request": request})
+
+            related_audios= Audio.objects.filter(category= audio.category).exclude(id=audio.id)
+            related_serializer = AudioSerializer(related_audios, many=True, context={"request": request})
+            
+            return self.success_response(
+                message="Audio is now playing",
+                data={
+                    "play_count": audio.play_count,
+                    "audio": serializer.data ,
+                    "related_audios": related_serializer.data
+                }
+            )        
+            
+        except Audio.DoesNotExist:
+            return self.error_response(
+                message="Audio not found. Please check the audio ID.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )   
+            
 class AudioPlayView(BaseAPIView):
     permission_classes = [permissions.IsAuthenticated]
     
@@ -51,21 +80,21 @@ class AudioPlayView(BaseAPIView):
             audio.increment_play()
             
             History.objects.create(user=request.user, audio=audio)
-            serializer = AudioSerializer(audio, context={"request": request})
+            serializer = AudioPlaySerializer(audio, context={"request": request})
             
             return self.success_response(
                 message="Audio is now playing",
                 data={
                     "play_count": audio.play_count,
-                    "audio": serializer.data
+                    "audio": serializer.data 
                 }
-            )     
+            )      
             
         except Audio.DoesNotExist:
             return self.error_response(
                 message="Audio not found. Please check the audio ID.",
                 status_code=status.HTTP_404_NOT_FOUND
-            )   
+            )               
 
 class CategoryListView(BaseAPIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -208,12 +237,11 @@ class NotificationListView(BaseAPIView):
     def get(self, request):
         """Get all notifications for the logged in user"""
         notifications = Notification.objects.filter(user=request.user).order_by("-created_at")
-        serializer = NotificationSerializer(notifications, many=True)
+        serializer = NotificationSerializer(notifications, many=True, context={"request": request})
         return self.success_response(
             message="Your notifications retrieved successfully",
             data=serializer.data
         )
-
 
 class NotificationMarkReadView(BaseAPIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -232,6 +260,21 @@ class NotificationMarkReadView(BaseAPIView):
                 message="Notification not found. Please check the notification ID.",
                 status_code=status.HTTP_404_NOT_FOUND
             )
+            
+    def delete(self, request, pk):
+        """Delete a notification"""
+        try:
+            notif = Notification.objects.get(id=pk, user=request.user)
+            notif.delete()
+            return self.success_response(
+                message="Notification deleted successfully",
+                data={"deleted_id": pk}
+            )
+        except Notification.DoesNotExist:
+            return self.error_response(
+                message="Notification not found or you don't have permission.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )        
 
         
 class TrendingAudioView(BaseAPIView):
@@ -450,7 +493,7 @@ class PlayListView(BaseAPIView):
         )
           
 
-class AddAudioToPlaylistView(BaseAPIView):
+class AddAudioToPlaylistView(BaseAPIView):    
     permission_classes = [permissions.IsAuthenticated]
 
     def post(self, request, playlist_id):
@@ -486,3 +529,151 @@ class AddAudioToPlaylistView(BaseAPIView):
                 "total_audios": playlist.audios.count()
             }
         )
+        
+        
+class DownloadListView(BaseAPIView):
+    
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        # --- Auto delete older than 7 days ---
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        Download.objects.filter(created_at__lt=seven_days_ago).delete()
+
+        # --- Return only last 7 days ---
+        downloads = Download.objects.filter(
+            user=request.user,
+            created_at__gte=seven_days_ago
+        ).order_by('-created_at')
+
+        serializer = DownloadSerializer(downloads, many=True, context={'request': request})
+        return self.success_response(
+            message="Download list retrieved successfully",
+            data=serializer.data
+        )   
+        
+        
+class DownloadCreateView(BaseAPIView):
+   
+    permission_classes = [permissions.IsAuthenticated]
+
+    def post(self, request, audio_id):
+       
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        Download.objects.filter(created_at__lt=seven_days_ago).delete()
+
+   
+        try:
+            audio = Audio.objects.get(pk=audio_id)
+        except Audio.DoesNotExist:
+            return self.error_response(
+                message="Audio not found. Please check the audio ID.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+    
+        existing = Download.objects.filter(
+            user=request.user,
+            audio=audio,
+            created_at__gte=seven_days_ago
+        ).first()
+
+        if existing:
+            serializer = DownloadSerializer(existing, context={'request': request})
+            return self.success_response(
+                message="Audio already in your download list (within 7 days)",
+                data=serializer.data
+            )
+
+ 
+        download = Download.objects.create(user=request.user, audio=audio)
+        serializer = DownloadSerializer(download, context={'request': request})
+
+        return self.success_response(
+            message="Audio added to your download list successfully",
+            data=serializer.data,
+            status_code=status.HTTP_201_CREATED
+        )
+        
+        
+class DownloadDeleteView(BaseAPIView):
+    
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk):
+        
+        seven_days_ago = timezone.now() - timedelta(days=7)
+        Download.objects.filter(created_at__lt=seven_days_ago).delete()
+
+        try:
+            download = Download.objects.get(pk=pk, user=request.user)
+            download.delete()
+            return self.success_response(
+                message="Download deleted successfully",
+                data={"deleted_id": pk}
+            )
+        except Download.DoesNotExist:
+            return self.error_response(
+                message="Download not found or you don't have permission.",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+        
+        
+class AudioSearchView(BaseAPIView):
+    """
+    Search functionality + return history in same response
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def get(self, request):
+        query = request.GET.get('q', '')
+
+        results = []  # search result list
+
+        if query:
+            # search result
+            audios = Audio.objects.filter(
+                Q(title__icontains=query) |
+                Q(description__icontains=query) |
+                Q(category__name__icontains=query)
+            ).order_by('-created_at')
+
+            # save history
+            SearchHistory.objects.create(user=request.user, query=query)
+
+            results = AudioSerializer(audios, many=True, context={'request': request}).data
+
+        # Always include history
+        histories = SearchHistory.objects.filter(user=request.user).order_by('-created_at')
+        history_data = SearchHistorySerializer(histories, many=True).data
+
+        return self.success_response(
+            message="Search results & history retrieved successfully",
+            data={
+                 "history": history_data,
+                "results": results  
+               
+            }
+        )
+
+
+
+class SearchHistoryDeleteView(BaseAPIView):
+    """
+    হিস্টোরি থেকে একটি কুয়েরি ডিলিট করা (pk URL থেকে)
+    """
+    permission_classes = [permissions.IsAuthenticated]
+
+    def delete(self, request, pk):
+        try:
+            history = SearchHistory.objects.get(pk=pk, user=request.user)
+            history.delete()
+            return self.success_response(
+                message="History deleted successfully",
+                data={"deleted_id": pk}
+            )
+        except SearchHistory.DoesNotExist:
+            return self.error_response(
+                message="History not found or you don't have permission.",
+                status_code=status.HTTP_404_NOT_FOUND
+            ) 

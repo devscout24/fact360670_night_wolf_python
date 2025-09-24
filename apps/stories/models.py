@@ -44,14 +44,13 @@ class FollowCategory(models.Model):
         return f"{self.user.full_name} follows {self.category.name}"
     
 class Notification(models.Model):
-    user= models.ForeignKey(User, on_delete= models.CASCADE, related_name='notifications')
-    audio= models.ForeignKey(Audio, on_delete= models.CASCADE)
-    message= models.CharField(max_length=400)
-    is_read= models.BooleanField(default=False)
-    created_at= models.DateTimeField(auto_now_add=True)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, related_name="notifications")
+    audio = models.ForeignKey(Audio, on_delete=models.CASCADE, null=True, blank=True)  # story হলে
+    category = models.ForeignKey(Category, on_delete=models.CASCADE, null=True, blank=True)  # category হলে
+    message = models.TextField()
+    is_read = models.BooleanField(default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
     
-    def __str__(self):
-        return f"Notification for {self.user}-{self.message}"    
     
     
 class Playlist(models.Model):
@@ -92,3 +91,15 @@ class Download(models.Model):
     user= models.ForeignKey(User, on_delete=models.CASCADE)
     audio= models.ForeignKey(Audio, on_delete=models.CASCADE)
     created_at= models.DateTimeField(auto_now_add=True)
+    
+    
+class SearchHistory(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    query = models.CharField(max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    class Meta:
+        ordering = ['-created_at']
+
+    def __str__(self):
+        return f"{self.user.username} searched {self.query}"    
