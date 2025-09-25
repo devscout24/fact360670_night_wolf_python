@@ -16,7 +16,7 @@ class BaseAPIView(APIView):
             "success": True,
             "message": message,
             "status_code": status_code,
-            "data": data or {}
+            "data": data or []
             }, 
             status=status_code)
         
@@ -26,7 +26,7 @@ class BaseAPIView(APIView):
             "success": False,
             "message": message,
             "status_code": status_code,
-            "data": data or {}
+            "data": data or []
             }, 
             status=status_code)
 
