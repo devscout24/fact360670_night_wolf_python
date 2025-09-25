@@ -34,3 +34,19 @@ def create_category_notifications(category):
         ]
         Notification.objects.bulk_create(notifications)
     threading.Thread(target=task).start()
+
+
+def create_subscription_notification(user):
+    """Background thread task for subscription notifications"""
+    def task():
+        if user.subscription and user.subscription.is_active():
+            months_left = user.subscription.months_left()
+            message = f"You Have {months_left} Months Left On Your Subscription."
+
+            Notification.objects.create(
+                user=user,
+                message=message,
+                # audio/category ফাঁকা থাকবে
+            )
+
+    threading.Thread(target=task).start()

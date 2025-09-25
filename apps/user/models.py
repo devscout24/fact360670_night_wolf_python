@@ -7,6 +7,22 @@ from datetime import timedelta
 from django.utils import timezone
 from django.conf import settings
 
+
+class Subscription(models.Model):
+    user = models.OneToOneField("User", on_delete=models.CASCADE, related_name="subscription")
+    start_date = models.DateTimeField(default=timezone.now)
+    end_date = models.DateTimeField()
+
+    def months_left(self):
+        today = timezone.now().date()
+        remaining_days = (self.end_date.date() - today).days
+        return max(0, remaining_days // 30)
+
+    def is_active(self):
+        return timezone.now() <= self.end_date
+
+    
+
 class UserManager(BaseUserManager):
     def create_user(self,email, password, **extra_fields):
         if not email:
@@ -61,3 +77,9 @@ class User(AbstractBaseUser, PermissionsMixin):
     
     def __str__(self):
         return self.email
+    
+    @property
+    def subscription_months_left(self):
+        if hasattr(self, "subscription") and self.subscription.is_active():
+            return self.subscription.months_left()
+        return 0

@@ -1,6 +1,6 @@
 
 
-from .models import User
+from .models import *
 from rest_framework import fields, serializers
 from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
@@ -22,6 +22,23 @@ class AbsoluteImageSerializer(serializers.ImageField):
             return url
         return None
 
+
+
+class SubscriptionSerializer(serializers.ModelSerializer):
+    months_left = serializers.SerializerMethodField()
+    is_active = serializers.SerializerMethodField()
+
+    class Meta:
+        model = Subscription
+        fields = ["id", "user", "start_date", "end_date", "months_left", "is_active"]
+
+    def get_months_left(self, obj):
+        return obj.months_left()
+
+    def get_is_active(self, obj):
+        return obj.is_active()
+    
+    
 
 class UserProfileSerializer( serializers.ModelSerializer):
     photo = AbsoluteImageSerializer(required=False)

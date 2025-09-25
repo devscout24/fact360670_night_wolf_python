@@ -27,21 +27,38 @@ class FollowCategorySerializer(serializers.ModelSerializer):
 
 
 class NotificationSerializer(serializers.ModelSerializer):
-    audio_title = serializers.CharField(source="audio.title", read_only=True)
-    audio_artist= serializers.CharField(source= "audio.artist", read_only=True)
-    audio_image= serializers.CharField(source='audio.cover_image', read_only= True)
+    image = serializers.SerializerMethodField()
 
     class Meta:
         model = Notification
         fields = [
-            "id", "audio", "audio_artist", "audio_title", 'audio_image',
+            "id", "audio", "category", "image",
             "message", "is_read", "created_at"
         ]
+
+    def get_image(self, obj):
+        request = self.context.get("request")
+        
+        # যদি audio notification → audio cover image
+        if obj.audio and obj.audio.cover_image:
+            return request.build_absolute_uri(obj.audio.cover_image.url)
+        
+        # যদি category notification → fixed category icon
+        if obj.category:
+            return request.build_absolute_uri("/media/static_image/category_icon.png")
+
+        # যদি subscription notification → fixed subscription icon
+        if "Subscription" in obj.message:
+            return request.build_absolute_uri("/media/static_image/subcription.png")
+
+        return None
+
 
 class AudioSerializer(serializers.ModelSerializer):
     like_count = serializers.SerializerMethodField()
     comment_count = serializers.SerializerMethodField()
-    is_liked = serializers.SerializerMethodField()  # 👈 নতুন field
+    is_liked = serializers.SerializerMethodField()
+    is_downloaded = serializers.SerializerMethodField() 
 
     class Meta:
         model = Audio
@@ -59,6 +76,13 @@ class AudioSerializer(serializers.ModelSerializer):
         if request and request.user.is_authenticated:
             return Like.objects.filter(audio=obj, user=request.user).exists()
         return False
+
+    def get_is_downloaded(self, obj):
+        request = self.context.get("request")
+        if request and request.user.is_authenticated:
+            return Download.objects.filter(audio=obj, user=request.user).exists()
+        return False
+
 
 
 class AudioPlaySerializer(serializers.ModelSerializer):

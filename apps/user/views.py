@@ -3,13 +3,14 @@ from .models import *
 from rest_framework.exceptions import ValidationError
 from rest_framework.views import APIView
 from rest_framework.response import Response
-from rest_framework import status
+from rest_framework import status, permissions
 from rest_framework.permissions import IsAuthenticated
 from rest_framework.exceptions import AuthenticationFailed
 from .serializers import SignUpSerializer
+from apps.stories.thread import create_subscription_notification
 from django.contrib.auth import authenticate
 from rest_framework_simplejwt.tokens import RefreshToken
-from .serializers import UserProfileSerializer, UserChangePasswordSerializer, PasswordResetRQSerializer,OTPVerifySerializer,PasswordResetSerializer, EmailVerifySerializer
+from .serializers import UserProfileSerializer, UserChangePasswordSerializer, PasswordResetRQSerializer,OTPVerifySerializer,PasswordResetSerializer, EmailVerifySerializer, SubscriptionSerializer
 
 
 class BaseAPIView(APIView):
@@ -33,6 +34,71 @@ class BaseAPIView(APIView):
             "data": data or {}
             }, 
             status=status_code)
+
+
+class SubscriptionView(BaseAPIView):
+    permission_classes = [permissions.IsAuthenticated]
+
+    # GET → show current subscription details
+    def get(self, request):
+        try:
+            subscription = request.user.subscription
+            serializer = SubscriptionSerializer(subscription)
+            return self.success_response(
+                message="Current subscription details",
+                data=serializer.data
+            )
+        except Subscription.DoesNotExist:
+            return self.error_response(
+                message="No active subscription",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
+
+    # POST → create or update subscription
+    def post(self, request):
+        months = int(request.data.get("months", 1))  # default 1 month
+        start = timezone.now()
+        end = start + timedelta(days=months * 30)
+
+        subscription, created = Subscription.objects.update_or_create(
+            user=request.user,
+            defaults={"start_date": start, "end_date": end},
+        )
+
+        # update user's subscription status
+        request.user.is_subscribed = True
+        request.user.save(update_fields=["is_subscribed"])
+
+        # send notification about subscription months left
+        create_subscription_notification(request.user)
+
+        serializer = SubscriptionSerializer(subscription)
+        return self.success_response(
+            message="Subscription created" if created else "Subscription updated",
+            data=serializer.data,
+            status_code=status.HTTP_201_CREATED if created else status.HTTP_200_OK
+        )
+
+    # DELETE → cancel subscription
+    def delete(self, request):
+        try:
+            subscription = request.user.subscription
+            subscription.delete()
+
+            # update user's subscription status
+            request.user.is_subscribed = False
+            request.user.save(update_fields=["is_subscribed"])
+
+            return self.success_response(
+                message="Subscription cancelled successfully",
+                data={},
+                status_code=status.HTTP_204_NO_CONTENT
+            )
+        except Subscription.DoesNotExist:
+            return self.error_response(
+                message="No active subscription",
+                status_code=status.HTTP_404_NOT_FOUND
+            )
 
 
 class UserProfileAPIView(BaseAPIView):
