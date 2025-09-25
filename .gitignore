@@ -13,8 +13,6 @@ env/
 *.pyc
 *.pyo
 *.pyd
-db.sqlite3
-db.sqlite3-journal
 
 
 # dotenv environment variables
