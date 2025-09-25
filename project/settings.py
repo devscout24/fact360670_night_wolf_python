@@ -28,14 +28,14 @@ SECRET_KEY = 'django-insecure-xmt8^8p&+)c8r6ufe$!!7-d01bfv-bm0#m66oh8hj3134u_in9
 DEBUG = True
 
 ALLOWED_HOSTS = [
-    '07e77ad4e2f7.ngrok-free.app',
+    'fact360670-night-wolf-python.onrender.com',
     'localhost', 
     '127.0.0.1',
     '*'
 ]
 
 CSRF_TRUSTED_ORIGINS = [
-    "https://07e77ad4e2f7.ngrok-free.app",
+    "https://fact360670-night-wolf-python.onrender.com",
 ]
 
 
