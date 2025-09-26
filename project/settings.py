@@ -25,18 +25,25 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 SECRET_KEY = 'django-insecure-xmt8^8p&+)c8r6ufe$!!7-d01bfv-bm0#m66oh8hj3134u_in9'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 
 ALLOWED_HOSTS = [
     'fact360670-night-wolf-python.onrender.com',
     'localhost', 
     '127.0.0.1',
-    '*'
+    
 ]
 
 CSRF_TRUSTED_ORIGINS = [
     "https://fact360670-night-wolf-python.onrender.com",
+    "http://fact360670-night-wolf-python.onrender.com"
 ]
+
+SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
+USE_X_FORWARDED_HOST = True
+SESSION_COOKIE_SECURE = True
+CSRF_COOKIE_SECURE = True
+
 
 
 # Adding JWT config
