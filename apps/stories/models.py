@@ -18,7 +18,7 @@ class Audio (models.Model):
     description= models.TextField(null=True, blank= True)
     cover_image= models.ImageField(upload_to='cover/', null=True, blank= True)
     audio_file= models.FileField(upload_to='audios/')
-    duration= models.DurationField(null=True, blank= True)
+    duration= models.DurationField(null=False, blank= False)
     category= models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     
     play_count= models.PositiveIntegerField(default=0)

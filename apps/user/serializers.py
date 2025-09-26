@@ -23,7 +23,6 @@ class AbsoluteImageSerializer(serializers.ImageField):
         return None
 
 
-
 class SubscriptionSerializer(serializers.ModelSerializer):
     months_left = serializers.SerializerMethodField()
     is_active = serializers.SerializerMethodField()
@@ -37,7 +36,6 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
     def get_is_active(self, obj):
         return obj.is_active()
-    
     
 
 class UserProfileSerializer( serializers.ModelSerializer):
@@ -85,7 +83,6 @@ class SignUpSerializer(serializers.ModelSerializer):
         return user
 
 
-
 class EmailVerifySerializer(serializers.Serializer):
     email = serializers.EmailField()
     otp = serializers.CharField(max_length=6)
@@ -125,7 +122,7 @@ class EmailVerifySerializer(serializers.Serializer):
             "access": access
         }
 
-# User can change password using old password
+
 class UserChangePasswordSerializer(serializers.Serializer):
     old_password = serializers.CharField(required=True)
     new_password = serializers.CharField(required=True)    
