@@ -4,9 +4,10 @@ from .serializers import *
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status, permissions
-from datetime import timedelta
 from django.utils import timezone
 from django.db.models import Q
+from datetime import timedelta
+
 
 class BaseAPIView(APIView):
     
@@ -32,7 +33,7 @@ class BaseAPIView(APIView):
 
 
 class AudioListView(BaseAPIView):
-    permission_classes=[permissions.IsAuthenticated]
+    permission_classes=[permissions.AllowAny]
     
     def get(self, request):
         audios = Audio.objects.all().order_by("-created_at")
@@ -44,7 +45,7 @@ class AudioListView(BaseAPIView):
         )
 
 class AudioDetailsView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     
     def get(self, request, pk):
         try:
@@ -72,7 +73,7 @@ class AudioDetailsView(BaseAPIView):
             )   
             
 class AudioPlayView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     
     def get(self, request, pk):
         try:
@@ -97,7 +98,7 @@ class AudioPlayView(BaseAPIView):
             )               
 
 class CategoryListView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     
     def get(self, request):
         # Get all categories with their audios
@@ -123,7 +124,7 @@ class CategoryListView(BaseAPIView):
 
  
 class CategoryView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     
     def get(self, request, category_name=None):
         if category_name:
@@ -278,7 +279,7 @@ class NotificationMarkReadView(BaseAPIView):
 
         
 class TrendingAudioView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         last_week = timezone.now() - timedelta(days=7)
@@ -291,7 +292,7 @@ class TrendingAudioView(BaseAPIView):
 
 
 class TopAllStoriesView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         audios = Audio.objects.order_by("-play_count", "-created_at")
@@ -303,7 +304,7 @@ class TopAllStoriesView(BaseAPIView):
 
 
 class PopularAudioView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         audios = Audio.objects.order_by("-play_count")
@@ -315,7 +316,7 @@ class PopularAudioView(BaseAPIView):
 
 
 class RecommendedAudioView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         last_history = History.objects.filter(user=request.user).order_by("-played_at").first()
@@ -366,7 +367,7 @@ class LikeToggleView(BaseAPIView):
                 status_code=status.HTTP_404_NOT_FOUND
             )
 
-        
+       
 
 class CommentView(BaseAPIView):
     permission_classes = [permissions.IsAuthenticated]
@@ -466,7 +467,7 @@ class CommentDetailView(BaseAPIView):
 
 
 class PlayListView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
     
     def post(self, request):
         serializer = PlayListSerializer(data=request.data)
@@ -494,7 +495,7 @@ class PlayListView(BaseAPIView):
           
 
 class AddAudioToPlaylistView(BaseAPIView):    
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def post(self, request, playlist_id):
         try:
@@ -623,7 +624,7 @@ class AudioSearchView(BaseAPIView):
     """
     Search functionality + return history in same response
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def get(self, request):
         query = request.GET.get('q', '')
@@ -662,7 +663,7 @@ class SearchHistoryDeleteView(BaseAPIView):
     """
     হিস্টোরি থেকে একটি কুয়েরি ডিলিট করা (pk URL থেকে)
     """
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     def delete(self, request, pk):
         try:

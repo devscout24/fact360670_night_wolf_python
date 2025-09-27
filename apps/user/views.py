@@ -37,7 +37,7 @@ class BaseAPIView(APIView):
 
 
 class SubscriptionView(BaseAPIView):
-    permission_classes = [permissions.IsAuthenticated]
+    permission_classes = [permissions.AllowAny]
 
     # GET → show current subscription details
     def get(self, request):
