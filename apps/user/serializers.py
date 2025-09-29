@@ -75,10 +75,10 @@ class SignUpSerializer(serializers.ModelSerializer):
         user.generate_otp()
 
         # Send OTP via email
-        subject = "Verify your email"
-        message = f"Hi {user.full_name},\nYour OTP is {user.otp}. It expires in 10 minutes."
-        send_mail(subject, message, 'from@example.com', [user.email])
-        print("OTP Sent:", user.otp)
+        # subject = "Verify your email"
+        # message = f"Hi {user.full_name},\nYour OTP is {user.otp}. It expires in 10 minutes."
+        # send_mail(subject, message, 'from@example.com', [user.email])
+        # print("OTP Sent:", user.otp)
 
         return user
 
