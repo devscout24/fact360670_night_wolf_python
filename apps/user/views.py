@@ -157,15 +157,30 @@ class SignUpView(BaseAPIView):
     serializer_class = SignUpSerializer
 
     def post(self, request, *args, **kwargs):
-        serializer = self.serializer_class(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            return self.success_response(
-                message="OTP sent to your email",
-                data={"otp": user.otp},
-                status_code=status.HTTP_201_CREATED
+        try:
+            serializer = self.serializer_class(data=request.data)
+            if serializer.is_valid():
+                user = serializer.save()
+                return self.success_response(
+                    message="OTP sent to your email",
+                    data={"otp": user.otp},
+                    status_code=status.HTTP_201_CREATED
+                )
+            # return validation errors
+            return self.error_response(
+                message="Validation failed",
+                data=serializer.errors,
+                status_code=status.HTTP_400_BAD_REQUEST
             )
-        return self.error_response(errors=serializer.errors, status_code=status.HTTP_400_BAD_REQUEST)
+
+        except Exception as e:
+            # catch any unexpected error
+            return self.error_response(
+                message="Something went wrong while processing your request",
+                data={"error": str(e)},
+                status_code=status.HTTP_500_INTERNAL_SERVER_ERROR
+            )
+
 
 
 class EmailOTPVerifyView(BaseAPIView):
