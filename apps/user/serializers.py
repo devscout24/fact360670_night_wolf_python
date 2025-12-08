@@ -75,10 +75,13 @@ class SignUpSerializer(serializers.ModelSerializer):
         user.generate_otp()
 
         # Send OTP via email
-        # subject = "Verify your email"
-        # message = f"Hi {user.full_name},\nYour OTP is {user.otp}. It expires in 10 minutes."
-        # send_mail(subject, message, 'from@example.com', [user.email])
-        # print("OTP Sent:", user.otp)
+        send_mail(
+        subject='Account Verification OTP',
+        message='The OTP for account verification is: {}'.format(user.otp),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
 
         return user
 
@@ -141,13 +144,13 @@ class PasswordResetRQSerializer(serializers.Serializer):
         user.generate_otp()
 
         # Send OTP via email
-        # send_mail(
-        #     "Password Reset OTP",
-        #     f"Your OTP for password reset is {user.otp}",
-        #     "aboutazizur@gmail.com",
-        #     [user.email],
-        #     fail_silently=False,
-        # )
+        send_mail(
+        subject='Password Reset OTP',
+        message='The OTP for password reset is: {}'.format(user.otp),
+        from_email=settings.DEFAULT_FROM_EMAIL,
+        recipient_list=[user.email],
+        fail_silently=False,
+    )
 
         # Save the user instance to serializer for view access
         self.user = user  

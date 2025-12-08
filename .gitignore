@@ -7,47 +7,8 @@ __pycache__/
 venv/
 env/
 
-# Django stuff:
-*.log
-*.pot
-*.pyc
-*.pyo
-*.pyd
-
 
 # dotenv environment variables
 .env
 *.env
 
-# VS Code settings
-.vscode/
-
-# PyCharm settings
-.idea/
-
-# macOS files
-.DS_Store
-
-# Windows files
-Thumbs.db
-
-# Coverage reports
-htmlcov/
-.coverage
-.coverage.*
-
-# Migrations (Optional, keep if you want to version control them)
-**/migrations/*.pyc
-**/migrations/__pycache__/
-
-# MyPy
-.mypy_cache/
-
-# pytest
-.pytest_cache/
-
-# Celery beat schedule
-celerybeat-schedule
-
-# JWT tokens or secret files if any custom:
-jwt_secret.json
