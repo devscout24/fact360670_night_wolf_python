@@ -21,13 +21,15 @@ class BaseAPIView(APIView):
             }, 
             status=status_code)
         
-    def error_response(self, message="I am sorry for your request", data=None, status_code=status.HTTP_400_BAD_REQUEST):
+    # Accepts `errors` as an alias for `data` to support serializer.errors usage
+    def error_response(self, message="I am sorry for your request", data=None, errors=None, status_code=status.HTTP_400_BAD_REQUEST):
+        payload_data = data if data is not None else (errors if errors is not None else [])
         return Response(
             {
             "success": False,
             "message": message,
             "status_code": status_code,
-            "data": data or []
+            "data": payload_data
             }, 
             status=status_code)
 
