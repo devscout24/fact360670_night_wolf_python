@@ -6,6 +6,7 @@ from django.contrib.auth.hashers import make_password
 from django.contrib.auth.password_validation import validate_password
 from django.contrib.auth import get_user_model
 from django.core.mail import send_mail
+from django.conf import settings
 from django.utils.timezone import now, timedelta
 from django.utils import timezone
 User = get_user_model()
@@ -80,7 +81,7 @@ class SignUpSerializer(serializers.ModelSerializer):
         message='The OTP for account verification is: {}'.format(user.otp),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
-        fail_silently=False,
+        fail_silently=True,
     )
 
         return user
@@ -144,15 +145,16 @@ class PasswordResetRQSerializer(serializers.Serializer):
         user.generate_otp()
 
         # Send OTP via email
-        send_mail(
+        sent_count = send_mail(
         subject='Password Reset OTP',
         message='The OTP for password reset is: {}'.format(user.otp),
         from_email=settings.DEFAULT_FROM_EMAIL,
         recipient_list=[user.email],
-        fail_silently=False,
+        fail_silently=True,
     )
 
-        # Save the user instance to serializer for view access
+        # Track whether email was accepted by the backend (non-zero indicates success)
+        self.email_sent = bool(sent_count)
         self.user = user  
 
         return data
