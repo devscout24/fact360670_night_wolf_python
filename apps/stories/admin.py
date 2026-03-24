@@ -1,6 +1,20 @@
 from django.contrib import admin
+from django import forms
 from .models import Audio, Playlist, History, Like, Comment, Follow, Download, Category, Notification, FollowCategory
 from .thread import create_audio_notifications, create_category_notifications
+
+
+# Custom form to restrict audio file input in admin
+class AudioAdminForm(forms.ModelForm):
+    class Meta:
+        model = Audio
+        fields = '__all__'
+        widgets = {
+            'audio_file': forms.ClearableFileInput(attrs={
+                'accept': 'audio/*,.mp3,.wav,.ogg,.flac,.aac,.m4a,.wma'
+            }),
+        }
+
 
 # Category
 @admin.register(Category)
@@ -16,6 +30,7 @@ class CategoryAdmin(admin.ModelAdmin):
 # Audio
 @admin.register(Audio)
 class AudioAdmin(admin.ModelAdmin):
+    form = AudioAdminForm
     list_display = ("id", "title", "artist", "category", "play_count", "is_premium", "created_at")
     list_filter = ("category", "is_premium", "created_at")
     search_fields = ("title", "artist", "description")

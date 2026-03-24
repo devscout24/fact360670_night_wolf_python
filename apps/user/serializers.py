@@ -41,9 +41,10 @@ class SubscriptionSerializer(serializers.ModelSerializer):
 
 class UserProfileSerializer( serializers.ModelSerializer):
     photo = AbsoluteImageSerializer(required=False)
+    isVerified = serializers.BooleanField(source='otp_verified', read_only=True)
     class Meta:
         model= User
-        fields= ['id','full_name', 'is_subscribed', 'photo']
+        fields= ['id','full_name', 'is_subscribed', 'photo', 'isVerified']
 
 
 class SignUpSerializer(serializers.ModelSerializer):

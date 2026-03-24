@@ -22,21 +22,21 @@ BASE_DIR = Path(__file__).resolve().parent.parent
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-xmt8^8p&+)c8r6ufe$!!7-d01bfv-bm0#m66oh8hj3134u_in9'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-xmt8^8p&+)c8r6ufe$!!7-d01bfv-bm0#m66oh8hj3134u_in9')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=False, cast=bool)
 
-ALLOWED_HOSTS = [
-    '72.61.235.146',
-    'localhost', 
-    '127.0.0.1',
-    "*"
-]
+ALLOWED_HOSTS = config(
+    'ALLOWED_HOSTS',
+    default='sleepcast.info,www.sleepcast.info,fact360670-night-wolf-python.onrender.com,72.61.235.146,localhost,127.0.0.1,c05a-103-161-9-10.ngrok-free.app',
+    cast=lambda v: [s.strip() for s in v.split(',')]
+)
 
 CSRF_TRUSTED_ORIGINS = [
+    "https://sleepcast.info",
+    "https://www.sleepcast.info",
     "https://fact360670-night-wolf-python.onrender.com",
-    "https://fact360670-night-wolf-python.onrender.com"
 ]
 
 SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
@@ -48,8 +48,8 @@ CSRF_COOKIE_SECURE = True
 
 # Adding JWT config
 SIMPLE_JWT = {
-     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(minutes=300),
-     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=300),
+     'ACCESS_TOKEN_LIFETIME': datetime.timedelta(days=365),
+     'REFRESH_TOKEN_LIFETIME': datetime.timedelta(days=365),
 }
 
 # settings.py
@@ -99,15 +99,13 @@ INSTALLED_APPS = [
 
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
+    'whitenoise.middleware.WhiteNoiseMiddleware',  # Static files for production
     'django.contrib.sessions.middleware.SessionMiddleware',
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
-    'django.contrib.auth.middleware.AuthenticationMiddleware',  # এটা MUST
+    'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    
-    
-    # "drf_response_wrapper.middleware.APIResponseWrapperMiddleware",
 ]
 
 ROOT_URLCONF = 'project.urls'
@@ -143,32 +141,33 @@ WSGI_APPLICATION = 'project.wsgi.application'
 #     }
 # }
 
-DATABASES = {
-    'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': config('POSTGRES_DB'),
-        'USER': config('POSTGRES_USER'),
-        'PASSWORD': config('POSTGRES_PASSWORD'),
-        'HOST': config('POSTGRES_HOST', default='localhost'),
-        'PORT': config('POSTGRES_PORT', default='5432'),
+_POSTGRES_DB = config('POSTGRES_DB', default='')
+
+if _POSTGRES_DB:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.postgresql',
+            'NAME': _POSTGRES_DB,
+            'USER': config('POSTGRES_USER'),
+            'PASSWORD': config('POSTGRES_PASSWORD'),
+            'HOST': config('POSTGRES_HOST', default='localhost'),
+            'PORT': config('POSTGRES_PORT', default='5432'),
+        }
     }
-}
+else:
+    DATABASES = {
+        'default': {
+            'ENGINE': 'django.db.backends.sqlite3',
+            'NAME': BASE_DIR / 'db.sqlite3',
+        }
+    }
 
 # Password validation
 # https://docs.djangoproject.com/en/5.2/ref/settings/#auth-password-validators
 
 AUTH_PASSWORD_VALIDATORS = [
     {
-        'NAME': 'django.contrib.auth.password_validation.UserAttributeSimilarityValidator',
-    },
-    {
         'NAME': 'django.contrib.auth.password_validation.MinimumLengthValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.CommonPasswordValidator',
-    },
-    {
-        'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
 
@@ -194,6 +193,7 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'static'
+STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
