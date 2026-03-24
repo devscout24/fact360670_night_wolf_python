@@ -24,16 +24,41 @@ class BaseAPIView(APIView):
             "data": data or []
             }, 
             status=status_code)
+
+    def _flatten_errors(self, errors):
+        """Flatten serializer errors dict into a single readable message string."""
+        if isinstance(errors, str):
+            return errors
+        if isinstance(errors, list):
+            return " ".join(str(e) for e in errors)
+        if isinstance(errors, dict):
+            messages = []
+            for field, error_list in errors.items():
+                if isinstance(error_list, list):
+                    for err in error_list:
+                        messages.append(str(err))
+                else:
+                    messages.append(str(error_list))
+            return " ".join(messages)
+        return str(errors)
         
-    # Accepts `errors` as an alias for `data` to support serializer.errors usage
     def error_response(self, message="I am sorry for your request", data=None, errors=None, status_code=status.HTTP_400_BAD_REQUEST):
-        payload_data = data if data is not None else (errors if errors is not None else [])
+        # If serializer errors are passed, flatten them into the message field
+        if errors is not None:
+            message = self._flatten_errors(errors)
+        elif data is not None and isinstance(data, dict):
+            # If data looks like serializer errors (dict with list values), move to message
+            is_error_dict = all(isinstance(v, list) for v in data.values()) if data else False
+            if is_error_dict:
+                message = self._flatten_errors(data)
+                data = None
+
         return Response(
             {
             "success": False,
             "message": message,
             "status_code": status_code,
-            "data": payload_data
+            "data": data or []
             }, 
             status=status_code)
 
@@ -219,20 +244,47 @@ class LoginView(BaseAPIView):
         if not user.check_password(password): 
             return self.error_response("Invalid email or password", status_code=status.HTTP_401_UNAUTHORIZED)
 
+        # Activate user on first login if not already active
         if not user.is_active:
-            return self.error_response("Account is not active", status_code=status.HTTP_403_FORBIDDEN)
+            user.is_active = True
+            user.save(update_fields=["is_active"])
+
+        # If user has not verified OTP, generate and send a new OTP
+        otp_value = None
+        if not user.otp_verified:
+            user.generate_otp()
+            from django.core.mail import send_mail
+            from django.conf import settings as app_settings
+            send_mail(
+                subject='Account Verification OTP',
+                message='The OTP for account verification is: {}'.format(user.otp),
+                from_email=app_settings.DEFAULT_FROM_EMAIL,
+                recipient_list=[user.email],
+                fail_silently=True,
+            )
+            otp_value = user.otp
 
         serializer = UserProfileSerializer(user)
         refresh = RefreshToken.for_user(user)
         access = refresh.access_token
 
-        return self.success_response(
-            data={
-                "user": serializer.data,
-                "refresh": str(refresh),
-                "access": str(access),
-            }
-        )
+        response_data = {
+            "user": serializer.data,
+            "refresh": str(refresh),
+            "access": str(access),
+        }
+
+        # Include OTP in response if user is not verified (for development/testing)
+        if otp_value:
+            response_data["otp"] = otp_value
+
+        # Set message based on verification status
+        if not user.otp_verified:
+            message = "OTP verification required. OTP has been sent to your email."
+        else:
+            message = "Login successful"
+
+        return self.success_response(message=message, data=response_data)
 
     
 class LogoutView(BaseAPIView):

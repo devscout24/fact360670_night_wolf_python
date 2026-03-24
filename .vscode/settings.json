@@ -1,0 +1,14 @@
+{
+    "python.defaultInterpreterPath": "./.venv/bin/python",
+    "python.analysis.extraPaths": [
+        "./.venv/lib/python3.12/site-packages"
+    ],
+    "python.linting.enabled": true,
+    "python.linting.pylintEnabled": true,
+    "python.formatting.provider": "black",
+    "editor.formatOnSave": true,
+    "editor.codeActionsOnSave": {
+        "source.organizeImports": "explicit",
+        "source.fixAll.pylint": "explicit"
+    }
+}

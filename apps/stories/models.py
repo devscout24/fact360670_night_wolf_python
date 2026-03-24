@@ -1,8 +1,19 @@
+import os
 from django.db import models
 
 # Create your models here.
 from apps.user.models import User
 from django.core.exceptions import ValidationError
+
+
+ALLOWED_AUDIO_EXTENSIONS = ['.mp3', '.wav', '.ogg', '.flac', '.aac', '.m4a', '.wma']
+
+def validate_audio_file(value):
+    ext = os.path.splitext(value.name)[1].lower()
+    if ext not in ALLOWED_AUDIO_EXTENSIONS:
+        raise ValidationError(
+            f'Only audio files are allowed. Supported formats: {", ".join(ALLOWED_AUDIO_EXTENSIONS)}'
+        )
 
 
 class Category(models.Model):
@@ -17,7 +28,7 @@ class Audio (models.Model):
     artist= models.CharField(max_length=150)
     description= models.TextField(null=True, blank= True)
     cover_image= models.ImageField(upload_to='cover/', null=True, blank= True)
-    audio_file= models.FileField(upload_to='audios/')
+    audio_file= models.FileField(upload_to='audios/', validators=[validate_audio_file])
     duration= models.DurationField(null=False, blank= False)
     category= models.ForeignKey(Category, on_delete=models.SET_NULL, null=True)
     
